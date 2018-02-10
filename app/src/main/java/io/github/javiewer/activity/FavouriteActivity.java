@@ -1,12 +1,17 @@
 package io.github.javiewer.activity;
 
-import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
+
+import com.roughike.bottombar.BottomBar;
+import com.roughike.bottombar.OnTabSelectListener;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -15,19 +20,35 @@ import io.github.javiewer.adapter.ViewPagerAdapter;
 import io.github.javiewer.fragment.favourite.FavouriteActressFragment;
 import io.github.javiewer.fragment.favourite.FavouriteFragment;
 import io.github.javiewer.fragment.favourite.FavouriteMovieFragment;
-import io.github.javiewer.view.ViewUtil;
 
 public class FavouriteActivity extends AppCompatActivity {
 
     @BindView(R.id.favourite_view_pager)
     public ViewPager mViewPager;
 
-    @BindView(R.id.bottom_nav_favourite)
-    BottomNavigationView mNav;
+    @BindView(R.id.favourite_bottom_bar)
+    BottomBar mBottomBar;
 
     MenuItem menuItem;
 
     public static ViewPagerAdapter mAdapter;
+
+    private OnTabSelectListener mOnTabSelectedListener = new OnTabSelectListener() {
+        @Override
+        public void onTabSelected(@IdRes int tabId) {
+            Log.i("tabid", String.valueOf(tabId));
+            switch (tabId) {
+                case R.id.tab_fav_actress:
+                    mViewPager.setCurrentItem(1);
+                    break;
+                case R.id.tab_fav_movie:
+                    mViewPager.setCurrentItem(0);
+                    break;
+            }
+
+            return;
+        }
+    };
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -47,13 +68,15 @@ public class FavouriteActivity extends AppCompatActivity {
     private ViewPager.OnPageChangeListener mOnPageChangeListener = new ViewPager.SimpleOnPageChangeListener() {
         @Override
         public void onPageSelected(int position) {
-            if (menuItem != null) {
+            mBottomBar.selectTabAtPosition(position, true);
+            mBottomBar.getShySettings().showBar();
+            /*if (menuItem != null) {
                 menuItem.setChecked(false);
             } else {
                 mNav.getMenu().getItem(0).setChecked(false);
             }
             mNav.getMenu().getItem(position).setChecked(true);
-            menuItem = mNav.getMenu().getItem(position);
+            menuItem = mNav.getMenu().getItem(position);*/
         }
     };
 
@@ -64,6 +87,8 @@ public class FavouriteActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mAdapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -76,10 +101,11 @@ public class FavouriteActivity extends AppCompatActivity {
         mAdapter.addFragment(fragment, "女优");
         mAdapter.notifyDataSetChanged();
 
-        mNav.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-       /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mNav.setElevation(ViewUtil.dpToPx(8));
-        }*/
+        //mNav.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        mBottomBar.setOnTabSelectListener(mOnTabSelectedListener, true);
+
+        /*NestedScrollView mScrollView = (NestedScrollView) findViewById(R.id.favourite_scroll_view);
+        mScrollView.setFillViewport(true);*/
     }
 
     public static void update() {
